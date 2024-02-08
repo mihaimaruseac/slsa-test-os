@@ -23,6 +23,8 @@ jobs:
       - id: hash
         run: |
           set -exuo pipefail
+          ls -l README.md
+          xxd README.md
           shasum -a 256 release_artifact_macos > checksum
           echo "hash=$(cat checksum | base64)" >> "${GITHUB_OUTPUT}"
           cat "${GITHUB_OUTPUT}"
