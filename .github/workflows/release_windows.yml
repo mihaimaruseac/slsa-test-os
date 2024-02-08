@@ -15,6 +15,9 @@ jobs:
     outputs:
       hash: ${{ steps.hash.outputs.hash }}
     steps:
+      - run: |
+          git config --global core.eol lf
+          git config --global core.autocrlf input
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           persist-credentials: false
