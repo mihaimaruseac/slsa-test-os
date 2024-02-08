@@ -30,7 +30,7 @@ jobs:
       - id: hash
         run: |
           set -exuo pipefail
-          sha256sum release_artifact_windows > checksum
+          powershell -command "Get-FileHash release_artifact_windows -Algorithm SHA256" > checksum
           echo "hash=$(cat checksum | base64 -w0)" >> "${GITHUB_OUTPUT}"
           cat "${GITHUB_OUTPUT}"
 
