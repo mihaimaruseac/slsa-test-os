@@ -22,8 +22,9 @@ jobs:
           if-no-files-found: error
       - id: hash
         run: |
-          set -euo pipefail
-          echo "hash=$(sha256sum release_artifact_macos | base64 -w0)" >> "${GITHUB_OUTPUT}"
+          set -exuo pipefail
+          echo "hash=$(shasum -a 256 release_artifact_macos | base64 -w0)" >> "${GITHUB_OUTPUT}"
+          cat "${GITHUB_OUTPUT}"
 
   provenance:
     needs: [build]
