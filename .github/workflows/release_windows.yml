@@ -30,8 +30,7 @@ jobs:
       - id: hash
         run: |
           set -exuo pipefail
-          sha256sum --help
-          sha256sum release_artifact_windows > checksum
+          sha256sum -t release_artifact_windows > checksum
           echo "hash=$(cat checksum | base64 -w0)" >> "${GITHUB_OUTPUT}"
           cat "${GITHUB_OUTPUT}"
 
