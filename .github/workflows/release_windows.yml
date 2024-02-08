@@ -27,8 +27,6 @@ jobs:
       - id: hash
         run: |
           set -exuo pipefail
-          ls -l README.md
-          xxd README.md
           sha256sum release_artifact_windows > checksum
           echo "hash=$(cat checksum | base64 -w0)" >> "${GITHUB_OUTPUT}"
           cat "${GITHUB_OUTPUT}"
