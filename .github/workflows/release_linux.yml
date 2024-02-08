@@ -1,0 +1,37 @@
+name: SLSA on Linux
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      hash: ${{ steps.hash.outputs.hash }}
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          persist-credentials: false
+      - run: cp README.md release_artifact_linux
+      - uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
+        with:
+          path: release_artifact_linux
+          name: release_artifact_linux
+          if-no-files-found: error
+      - id: hash
+        run: |
+          set -euo pipefail
+          echo "hash=$(sha256sum release_artifact_linux | base64 -w0)" >> "${GITHUB_OUTPUT}"
+
+  provenance:
+    needs: [build]
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.9.0
+    with:
+      base64-subjects: "${{ needs.build.outputs.hash }}"
+      upload-assets: true # NOTE: This does nothing unless 'upload-tag-name' parameter is also set to an existing tag
