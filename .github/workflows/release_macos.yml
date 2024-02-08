@@ -25,6 +25,7 @@ jobs:
           set -exuo pipefail
           shasum -a 256 release_artifact_macos > checksum
           echo "hash=$(cat checksum | base64 -w0)" >> "${GITHUB_OUTPUT}"
+          base64 --help
           cat "${GITHUB_OUTPUT}"
 
   provenance:
