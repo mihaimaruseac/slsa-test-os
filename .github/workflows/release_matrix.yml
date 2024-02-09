@@ -1,0 +1,69 @@
+name: SLSA on all Operating Systems
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+# For Windows: force all steps to run on bash
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false # Don't cancel other jobs if one fails
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    outputs:
+      # Create a hash for each operating system, we're using a 3-to-3 system
+      hash-ubuntu-latest: ${{ steps.hash.outputs.hash-ubuntu-latest }}
+      hash-macos-latest: ${{ steps.hash.outputs.hash-macos-latest }}
+      hash-windows-latest: ${{ steps.hash.outputs.hash-windows-latest }}
+    steps:
+      # First configure git to never convert LF to CRLF
+      - run: |
+          git config --global core.eol lf
+          git config --global core.autocrlf input
+      # Clone the repository
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          persist-credentials: false
+      # Do the build
+      - run: cp README.md release_artifact
+      # Upload the artifact
+      - uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
+        with:
+          path: release_artifact
+          name: release_artifact_${{ runner.os }}
+          if-no-files-found: error
+      # Compute the proper hash
+      - id: hash
+        run: |
+          set -exuo pipefail
+          # Compute a digest:
+          #   - Linux: sha256sum is enough
+          #   - MacOS: shasum -a 256 is needed as sha256sum doesn't exist
+          #   - Windows: sha256sum -t to only have digest and filenames in output
+          (sha256sum -t release_artifact || shasum -a 256 release_artifact) > checksum
+          # Create the hash: MacOS does not support `-w0` option
+          echo "hash-${{ matrix.os }}=$(base64 -w0 checksum || base64 checksum)" >> "${GITHUB_OUTPUT}"
+          # Debug: TODO: remove
+          cat "${GITHUB_OUTPUT}"
+
+  provenance:
+    needs: [build]
+    strategy:
+      fail-fast: false # Don't cancel other jobs if one fails
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.9.0
+    with:
+      base64-subjects: "${{ needs.build.outputs[format('hash-{0}', matrix.os)] }}"
+      upload-assets: true # NOTE: This does nothing unless 'upload-tag-name' parameter is also set to an existing tag
