@@ -32,11 +32,11 @@ jobs:
         with:
           persist-credentials: false
       # Do the build
-      - run: cp README.md release_artifact
+      - run: cp README.md release_artifact_${{ runner.os }}
       # Upload the artifact
       - uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
         with:
-          path: release_artifact
+          path: release_artifact_${{ runner.os }}
           name: release_artifact_${{ runner.os }}
           if-no-files-found: error
       # Compute the proper hash
