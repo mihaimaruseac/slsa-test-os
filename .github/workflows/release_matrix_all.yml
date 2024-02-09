@@ -55,6 +55,7 @@ jobs:
   # single one before we call the provenance generator
   combine_hashes:
     needs: [build]
+    runs-on: ubuntu-latest
     outputs:
       hashes: ${{ steps.combine_hashes.outputs.hashes }}
     # Combine the input hashes into a single JSON in an envar
