@@ -1,4 +1,4 @@
-name: SLSA on all Operating Systems (multiple provenances)
+name: SLSA on all Operating Systems (single provenance)
 
 on:
   workflow_dispatch:
@@ -51,17 +51,34 @@ jobs:
           # Create the hash: MacOS does not support `-w0` option
           echo "hash-${{ matrix.os }}=$(base64 -w0 checksum || base64 checksum)" >> "${GITHUB_OUTPUT}"
 
-  provenance:
+  # Since we generate just one provenance, we need to combine all hashes in a
+  # single one before we call the provenance generator
+  combine_hashes:
     needs: [build]
-    strategy:
-      fail-fast: false # Don't cancel other jobs if one fails
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+    outputs:
+      hashes: ${{ steps.combine_hashes.outputs.hashes }}
+    # Combine the input hashes into a single JSON in an envar
+    env:
+      HASHES: ${{ toJSON(needs.build.outputs) }}
+    steps:
+      - id: combine_hashes
+        run: |
+          set -exuo pipefail
+          echo "${HASHES}" # DEBUG
+          echo "${HASHES}" | jq -r '.[]' # DEBUG
+          echo "${HASHES}" | jq -r '.[] | @base64d' # DEBUG
+          echo "${HASHES}" | jq -r '.[] | @base64d' | sed "/^$/d" # DEBUG
+          echo "${HASHES}" | jq -r '.[] | @base64d' | sed "/^$/d" > hashes
+          echo "hashes=$(base64 -w0 hashes || base64 hashes)" >> "${GITHUB_OUTPUT}"
+
+  provenance:
+    needs: [combine_hashes]
     permissions:
       actions: read
       id-token: write
       contents: write
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.9.0
     with:
-      base64-subjects: "${{ needs.build.outputs[format('hash-{0}', matrix.os)] }}"
+      base64-subjects: "${{ needs.combinte_hashes.outputs.hashes }}"
       upload-assets: true # NOTE: This does nothing unless 'upload-tag-name' parameter is also set to an existing tag
+
