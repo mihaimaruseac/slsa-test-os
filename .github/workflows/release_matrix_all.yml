@@ -76,6 +76,6 @@ jobs:
       contents: write
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.9.0
     with:
-      base64-subjects: "${{ needs.combinte_hashes.outputs.hashes }}"
+      base64-subjects: "${{ needs.combine_hashes.outputs.hashes }}"
       upload-assets: true # NOTE: This does nothing unless 'upload-tag-name' parameter is also set to an existing tag
 
