@@ -42,7 +42,7 @@ jobs:
       # Compute the proper hash
       - id: hash
         run: |
-          set -exuo pipefail
+          set -euo pipefail
           # Compute a digest:
           #   - Linux: sha256sum is enough
           #   - MacOS: shasum -a 256 is needed as sha256sum doesn't exist
@@ -50,8 +50,6 @@ jobs:
           (sha256sum -t release_artifact || shasum -a 256 release_artifact) > checksum
           # Create the hash: MacOS does not support `-w0` option
           echo "hash-${{ matrix.os }}=$(base64 -w0 checksum || base64 checksum)" >> "${GITHUB_OUTPUT}"
-          # Debug: TODO: remove
-          cat "${GITHUB_OUTPUT}"
 
   provenance:
     needs: [build]
