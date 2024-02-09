@@ -70,7 +70,7 @@ jobs:
           echo "${HASHES}" | jq -r '.[] | @base64d' # DEBUG
           echo "${HASHES}" | jq -r '.[] | @base64d' | sed "/^$/d" # DEBUG
           echo "${HASHES}" | jq -r '.[] | @base64d' | sed "/^$/d" > hashes
-          echo "hashes=$(base64 -w0 hashes || base64 hashes)" >> "${GITHUB_OUTPUT}"
+          echo "hashes=$(base64 -w0 hashes)" >> "${GITHUB_OUTPUT}"
 
   provenance:
     needs: [combine_hashes]
