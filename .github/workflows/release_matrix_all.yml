@@ -64,11 +64,7 @@ jobs:
     steps:
       - id: combine_hashes
         run: |
-          set -exuo pipefail
-          echo "${HASHES}" # DEBUG
-          echo "${HASHES}" | jq -r '.[]' # DEBUG
-          echo "${HASHES}" | jq -r '.[] | @base64d' # DEBUG
-          echo "${HASHES}" | jq -r '.[] | @base64d' | sed "/^$/d" # DEBUG
+          set -euo pipefail
           echo "${HASHES}" | jq -r '.[] | @base64d' | sed "/^$/d" > hashes
           echo "hashes=$(base64 -w0 hashes)" >> "${GITHUB_OUTPUT}"
 
